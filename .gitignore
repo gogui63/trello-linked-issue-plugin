@@ -1,0 +1,32 @@
+# Dépendances
+node_modules/
+
+# Build Vite
+dist/
+
+# Cache Vite
+.vite/
+
+# Variables d'environnement
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Tests
+coverage/
+
+# Outils IA
+.claude/
+.cursor/
+.cursorignore
+.cursorrules
+.aider*
+.codex/
+.agents/
+.codeium/
+.continue/
+.windsurf/
