@@ -6,15 +6,15 @@ export const RELATIONS: Array<{
   inverse: RelationKey;
   group: string;
 }> = [
-  { key: 'blocks', label: 'bloqué', inverse: 'isBlockedBy', group: 'Blocage' },
-  { key: 'isBlockedBy', label: 'est bloquée par', inverse: 'blocks', group: 'Blocage' },
-  { key: 'parentOf', label: 'parent de', inverse: 'childOf', group: 'Hiérarchie' },
-  { key: 'childOf', label: 'enfant de', inverse: 'parentOf', group: 'Hiérarchie' },
-  { key: 'duplicates', label: 'dupliqué', inverse: 'duplicatedBy', group: 'Doublons' },
-  { key: 'duplicatedBy', label: 'est dupliquée par', inverse: 'duplicates', group: 'Doublons' },
-  { key: 'clones', label: 'cloné', inverse: 'clonedBy', group: 'Clones' },
-  { key: 'clonedBy', label: 'est clonée par', inverse: 'clones', group: 'Clones' },
-  { key: 'relatesTo', label: 'liée à', inverse: 'relatesTo', group: 'Relation' },
+  { key: 'blocks', label: 'Bloque', inverse: 'isBlockedBy', group: 'Blocage' },
+  { key: 'isBlockedBy', label: 'Est bloquée par', inverse: 'blocks', group: 'Blocage' },
+  { key: 'parentOf', label: 'Parent de', inverse: 'childOf', group: 'Hiérarchie' },
+  { key: 'childOf', label: 'Enfant de', inverse: 'parentOf', group: 'Hiérarchie' },
+  { key: 'duplicates', label: 'Duplique', inverse: 'duplicatedBy', group: 'Doublons' },
+  { key: 'duplicatedBy', label: 'Est dupliquée par', inverse: 'duplicates', group: 'Doublons' },
+  { key: 'clones', label: 'Clone', inverse: 'clonedBy', group: 'Clones' },
+  { key: 'clonedBy', label: 'Est clonée par', inverse: 'clones', group: 'Clones' },
+  { key: 'relatesTo', label: 'Liée à', inverse: 'relatesTo', group: 'Relation' },
 ];
 
 const relationByKey = new Map(RELATIONS.map((relation) => [relation.key, relation]));
