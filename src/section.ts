@@ -13,12 +13,12 @@ const t = window.TrelloPowerUp.iframe({
 
 function statusText(item: ResolvedLinkedCard): string {
   if (item.error === 'unauthorized') return 'Autorisation requise';
-  if (item.error === 'forbidden') return 'Acces refuse';
+  if (item.error === 'forbidden') return 'Accès refusé';
   if (item.error === 'not-found') return 'Carte introuvable';
-  if (item.error) return 'Etat indisponible';
-  if (item.card?.closed) return 'Archivee';
+  if (item.error) return 'État indisponible';
+  if (item.card?.closed) return 'Archivée';
   if (item.card?.due) {
-    return item.card.dueComplete ? `Echeance terminee ${formatDate(item.card.due)}` : `Echeance ${formatDate(item.card.due)}`;
+    return item.card.dueComplete ? `Échéance terminée ${formatDate(item.card.due)}` : `Échéance ${formatDate(item.card.due)}`;
   }
   return item.listName || 'Carte active';
 }
@@ -62,13 +62,13 @@ function createCardRow(item: ResolvedLinkedCard): HTMLElement {
 t.render(async () => {
   const status = qs<HTMLDivElement>('#section-status');
   const groups = qs<HTMLDivElement>('#linked-groups');
-  status.textContent = 'Chargement des cartes liees...';
+  status.textContent = 'Chargement des cartes liées...';
   groups.hidden = true;
   clear(groups);
 
   const links = await getLinks(t);
   if (links.length === 0) {
-    status.textContent = 'Aucune carte liee pour le moment.';
+    status.textContent = 'Aucune carte liée pour le moment.';
     await t.sizeTo('#linked-section');
     return;
   }
@@ -79,8 +79,8 @@ t.render(async () => {
   } catch (error) {
     status.textContent =
       error instanceof Error && error.message === 'missing-backend-url'
-        ? 'Backend non configure. Impossible de rafraichir les cartes liees.'
-        : 'Impossible de rafraichir les cartes liees depuis le backend.';
+        ? 'Backend non configuré. Impossible de rafraîchir les cartes liées.'
+        : 'Impossible de rafraîchir les cartes liées depuis le backend.';
     await t.sizeTo('#linked-section');
     return;
   }

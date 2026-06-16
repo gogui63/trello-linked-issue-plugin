@@ -45,6 +45,10 @@ export async function findCardByShortLink(shortLink: string): Promise<TrelloCard
   return backendFetch<TrelloCardSummary>(`/api/cards/${encodeURIComponent(shortLink)}`);
 }
 
+export async function searchCards(query: string): Promise<TrelloCardSummary[]> {
+  return backendFetch<TrelloCardSummary[]>(`/api/cards/search?q=${encodeURIComponent(query)}`);
+}
+
 export async function resolveLinkedCards(links: LinkedCard[]): Promise<ResolvedLinkedCard[]> {
   if (links.length === 0) return [];
   return backendFetch<ResolvedLinkedCard[]>('/api/cards/resolve-linked', {

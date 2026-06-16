@@ -41,7 +41,7 @@ window.TrelloPowerUp.initialize(
         height: 360,
       },
       action: {
-        text: 'Gerer',
+        text: 'Gérer',
         callback: (t: any) => openManager(t),
       },
     }),

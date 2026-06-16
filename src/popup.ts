@@ -2,6 +2,7 @@ import { APP_AUTHOR, APP_NAME } from './config';
 import {
   findCardByShortLink,
   removeReciprocalLink,
+  searchCards,
   writeReciprocalLink,
 } from './backendClient';
 import { clear, qs } from './dom';
@@ -19,7 +20,7 @@ import {
   getLinks,
   setLinks,
 } from './trelloStorage';
-import type { LinkedCard, RelationKey } from './types';
+import type { LinkedCard, RelationKey, TrelloCardSummary } from './types';
 import './styles.css';
 
 const t = window.TrelloPowerUp.iframe({
@@ -84,7 +85,7 @@ async function tryRemoveReciprocal(link: LinkedCard): Promise<void> {
     const currentCard = await getCurrentCardIdentity(t);
     await removeReciprocalLink(link.id, currentCard.id);
   } catch {
-    // The local link is still removed when the reciprocal card cannot be updated.
+    // Le lien local est tout de même supprimé si la carte cible est inaccessible.
   }
 }
 
@@ -103,7 +104,7 @@ async function addLink(): Promise<void> {
   const currentCard = await getCurrentCardIdentity(t);
   const targetCard = await findCardByShortLink(parsed.shortLink);
   if (targetCard.id === currentCard.id) {
-    message.textContent = 'Une carte ne peut pas etre liee a elle-meme.';
+    message.textContent = 'Une carte ne peut pas être liée à elle-même.';
     return;
   }
 
@@ -130,23 +131,82 @@ async function addLink(): Promise<void> {
 
   input.value = '';
   message.textContent = reciprocalWritten
-    ? 'Lien ajoute sur les deux cartes.'
-    : 'Lien ajoute ici. Le lien reciproque n’a pas pu etre ecrit.';
+    ? 'Lien ajouté sur les deux cartes.'
+    : "Lien ajouté ici. Le lien réciproque n'a pas pu être écrit.";
   await renderExistingLinks();
+}
+
+function setupAutocomplete(input: HTMLInputElement, suggestionsEl: HTMLDivElement): void {
+  function hideSuggestions(): void {
+    suggestionsEl.hidden = true;
+    clear(suggestionsEl);
+  }
+
+  function showSuggestions(cards: TrelloCardSummary[]): void {
+    clear(suggestionsEl);
+    if (cards.length === 0) {
+      hideSuggestions();
+      return;
+    }
+    cards.forEach((card) => {
+      const item = document.createElement('div');
+      item.className = 'suggestion-item';
+      const name = document.createElement('div');
+      name.className = 'suggestion-name';
+      name.textContent = card.name;
+      const meta = document.createElement('div');
+      meta.className = 'suggestion-meta';
+      meta.textContent = card.shortLink ?? '';
+      item.append(name, meta);
+      item.addEventListener('mousedown', (e) => {
+        e.preventDefault(); // empêche blur de se déclencher avant le clic
+        input.value = card.shortLink ?? '';
+        hideSuggestions();
+      });
+      suggestionsEl.appendChild(item);
+    });
+    suggestionsEl.hidden = false;
+    t.sizeTo('#popup-content').catch(() => undefined);
+  }
+
+  let searchTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  input.addEventListener('input', () => {
+    if (searchTimeout) clearTimeout(searchTimeout);
+    const value = input.value.trim();
+    if (!value || value.includes('trello.com/c/') || value.length < 2) {
+      hideSuggestions();
+      return;
+    }
+    searchTimeout = setTimeout(() => {
+      searchCards(value)
+        .then(showSuggestions)
+        .catch(hideSuggestions);
+    }, 300);
+  });
+
+  input.addEventListener('blur', () => {
+    setTimeout(hideSuggestions, 150);
+  });
 }
 
 t.render(async () => {
   renderRelations();
+
+  const input = qs<HTMLInputElement>('#card-url');
+  const suggestionsEl = qs<HTMLDivElement>('#card-suggestions');
+  setupAutocomplete(input, suggestionsEl);
+
   qs<HTMLButtonElement>('#add-link').addEventListener('click', () => {
     addLink().catch((error) => {
       const msg = error instanceof Error ? error.message : '';
       qs<HTMLParagraphElement>('#form-message').textContent =
         msg === 'not-found'
-          ? "Carte introuvable. Verifiez l'identifiant saisi."
+          ? "Carte introuvable. Vérifiez l'identifiant saisi."
           : msg === 'missing-backend-url'
-          ? 'Backend non configure dans ce plugin.'
+          ? 'Backend non configuré dans ce plugin.'
           : msg === 'network'
-          ? 'Backend inaccessible. Reessayez plus tard.'
+          ? 'Backend inaccessible. Réessayez plus tard.'
           : "Impossible d'ajouter ce lien.";
     });
   });

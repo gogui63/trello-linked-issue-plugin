@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="https://p.trellocdn.com/power-up.css" />
-    <title>Gerer les Linked Cards</title>
+    <title>Gérer les Linked Cards</title>
     <script src="https://p.trellocdn.com/power-up.min.js"></script>
   </head>
   <body>
@@ -12,12 +12,13 @@
       <section>
         <h2>Ajouter un lien</h2>
         <label for="card-url">URL ou identifiant de carte Trello</label>
-        <input id="card-url" type="text" placeholder="https://trello.com/c/abc123/titre ou abc123" />
+        <input id="card-url" type="text" placeholder="https://trello.com/c/abc123/titre ou abc123" autocomplete="off" />
+        <div id="card-suggestions" class="suggestions" hidden></div>
 
         <label for="relation">Relation</label>
         <select id="relation"></select>
 
-        <button id="add-link" type="button" class="primary">Ajouter la carte liee</button>
+        <button id="add-link" type="button" class="primary">Ajouter la carte liée</button>
         <p id="form-message" class="form-message" role="status"></p>
       </section>
 
