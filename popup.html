@@ -4,26 +4,27 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="https://p.trellocdn.com/power-up.css" />
-    <title>Gerer les Linked Cards</title>
+    <title>Gérer les Linked Cards</title>
     <script src="https://p.trellocdn.com/power-up.min.js"></script>
-    <script type="module" crossorigin src="./assets/popup-D7n1lhHV.js"></script>
-    <link rel="modulepreload" crossorigin href="./assets/styles-1dFHx5M7.js">
-    <link rel="modulepreload" crossorigin href="./assets/backendClient-DRrh9Ayp.js">
+    <script type="module" crossorigin src="./assets/popup-FdAwDLRt.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/styles-Ib_7E4n9.js">
+    <link rel="modulepreload" crossorigin href="./assets/backendClient-JC69wx-y.js">
     <link rel="modulepreload" crossorigin href="./assets/dom-CANVbKc5.js">
-    <link rel="modulepreload" crossorigin href="./assets/trelloStorage-C89GmovG.js">
-    <link rel="stylesheet" crossorigin href="./assets/styles-C6afSwn2.css">
+    <link rel="modulepreload" crossorigin href="./assets/trelloStorage-vSNkHqTJ.js">
+    <link rel="stylesheet" crossorigin href="./assets/styles-sQQU4UOm.css">
   </head>
   <body>
     <main id="popup-content" class="surface popup-layout">
       <section>
         <h2>Ajouter un lien</h2>
         <label for="card-url">URL ou identifiant de carte Trello</label>
-        <input id="card-url" type="text" placeholder="https://trello.com/c/abc123/titre ou abc123" />
+        <input id="card-url" type="text" placeholder="https://trello.com/c/abc123/titre ou abc123" autocomplete="off" />
+        <div id="card-suggestions" class="suggestions" hidden></div>
 
         <label for="relation">Relation</label>
         <select id="relation"></select>
 
-        <button id="add-link" type="button" class="primary">Ajouter la carte liee</button>
+        <button id="add-link" type="button" class="primary">Ajouter la carte liée</button>
         <p id="form-message" class="form-message" role="status"></p>
       </section>
 
