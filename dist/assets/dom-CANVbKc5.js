@@ -1,0 +1,1 @@
+function e(e){let t=document.querySelector(e);if(!t)throw Error(`Missing element: ${e}`);return t}function t(e){e.replaceChildren()}function n(e){return e?new Intl.DateTimeFormat(`fr-FR`,{day:`2-digit`,month:`2-digit`,year:`numeric`}).format(new Date(e)):``}export{n,e as r,t};

@@ -1,0 +1,21 @@
+{
+  "name": "Linked Cards",
+  "details": "Power-Up Trello pour lier des cartes avec des relations inspirees de Jira Linked Issues.",
+  "icon": {
+    "url": "./icon.svg"
+  },
+  "author": "Welyb",
+  "capabilities": [
+    "card-badges",
+    "card-detail-badges",
+    "card-buttons",
+    "card-back-section",
+    "authorization-status",
+    "show-authorization"
+  ],
+  "connectors": {
+    "iframe": {
+      "url": "./index.html"
+    }
+  }
+}
