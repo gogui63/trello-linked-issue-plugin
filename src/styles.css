@@ -223,11 +223,38 @@ button.subtle {
     color: #b6c2cf;
   }
 
+  label {
+    color: #9fadbc;
+  }
+
   input,
   select {
     background: #22272b !important;
     border-color: #454f59 !important;
     color: #b6c2cf !important;
+  }
+
+  .suggestions {
+    background: #22272b;
+    border-color: #454f59;
+  }
+
+  .suggestion-item:hover {
+    background: #2c333a;
+  }
+
+  .suggestion-name {
+    color: #b6c2cf;
+  }
+
+  .suggestion-meta {
+    color: #9fadbc;
+  }
+
+  .muted,
+  .form-message,
+  .empty-state {
+    color: #9fadbc;
   }
 
   .linked-row,

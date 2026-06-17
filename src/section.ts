@@ -59,7 +59,13 @@ function createCardRow(item: ResolvedLinkedCard): HTMLElement {
   return row;
 }
 
+// Render token: annule les renders concurrents (Trello peut invoquer t.render plusieurs fois
+// en parallèle, et le lazy-sync via t.set() en déclenche un supplémentaire).
+let renderToken = 0;
+
 t.render(async () => {
+  const myToken = ++renderToken;
+
   const status = qs<HTMLDivElement>('#section-status');
   const groups = qs<HTMLDivElement>('#linked-groups');
   status.textContent = 'Chargement des cartes liées...';
@@ -72,6 +78,8 @@ t.render(async () => {
     getLinks(t),
     cardId ? fetchReciprocalLinks(cardId) : Promise.resolve([]),
   ]);
+
+  if (myToken !== renderToken) return;
 
   // Supprime les liens réciproques locaux absents du backend (lien supprimé par la carte source)
   const dbLinkIds = new Set(dbLinks.map((l) => l.id));
@@ -97,6 +105,7 @@ t.render(async () => {
   try {
     resolved = await resolveLinkedCards(mergedLinks);
   } catch (error) {
+    if (myToken !== renderToken) return;
     status.textContent =
       error instanceof Error && error.message === 'missing-backend-url'
         ? 'Backend non configuré. Impossible de rafraîchir les cartes liées.'
@@ -104,6 +113,9 @@ t.render(async () => {
     await t.sizeTo('#linked-section');
     return;
   }
+
+  if (myToken !== renderToken) return;
+
   const byGroup = new Map<string, ResolvedLinkedCard[]>();
   resolved.forEach((item) => {
     const group = getRelationGroup(item.link.relation);
