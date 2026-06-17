@@ -1,8 +1,8 @@
 import { APP_AUTHOR, APP_NAME } from './config';
-import { resolveLinkedCards } from './backendClient';
+import { fetchReciprocalLinks, resolveLinkedCards } from './backendClient';
 import { clear, formatDate, qs } from './dom';
 import { getRelationGroup, getRelationLabel } from './linkedCards';
-import { getLinks } from './trelloStorage';
+import { getCurrentContext, getLinks, setLinks } from './trelloStorage';
 import type { ResolvedLinkedCard } from './types';
 import './styles.css';
 
@@ -66,8 +66,28 @@ t.render(async () => {
   groups.hidden = true;
   clear(groups);
 
-  const links = await getLinks(t);
-  if (links.length === 0) {
+  const { cardId } = await getCurrentContext(t);
+
+  const [localLinks, dbLinks] = await Promise.all([
+    getLinks(t),
+    cardId ? fetchReciprocalLinks(cardId) : Promise.resolve([]),
+  ]);
+
+  // Supprime les liens réciproques locaux absents du backend (lien supprimé par la carte source)
+  const dbLinkIds = new Set(dbLinks.map((l) => l.id));
+  const cleanedLocal = localLinks.filter((l) => !(l.reciprocal === true && !dbLinkIds.has(l.id)));
+
+  // Fusionne avec les liens du backend absents localement
+  const cleanedIds = new Set(cleanedLocal.map((l) => l.id));
+  const newFromDb = dbLinks.filter((l) => !cleanedIds.has(l.id));
+  const mergedLinks = [...cleanedLocal, ...newFromDb];
+
+  // Lazy-sync : écrit dans pluginData pour que les badges voient les liens réciproques
+  if (newFromDb.length > 0 || cleanedLocal.length !== localLinks.length) {
+    setLinks(t, mergedLinks).catch(() => undefined);
+  }
+
+  if (mergedLinks.length === 0) {
     status.textContent = 'Aucune carte liée pour le moment.';
     await t.sizeTo('#linked-section');
     return;
@@ -75,7 +95,7 @@ t.render(async () => {
 
   let resolved: ResolvedLinkedCard[];
   try {
-    resolved = await resolveLinkedCards(links);
+    resolved = await resolveLinkedCards(mergedLinks);
   } catch (error) {
     status.textContent =
       error instanceof Error && error.message === 'missing-backend-url'
