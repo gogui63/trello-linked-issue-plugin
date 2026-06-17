@@ -85,21 +85,22 @@ t.render(async () => {
   const backendReachable = dbLinksResult !== null;
   const dbLinks = dbLinksResult ?? [];
 
-  // Supprime les liens réciproques locaux absents du backend (lien supprimé par la carte source).
-  // Skip this cleanup when the backend is unreachable to avoid destroying data.
-  const dbLinkIds = new Set(dbLinks.map((l) => l.id));
-  const cleanedLocal = backendReachable
-    ? localLinks.filter((l) => !(l.reciprocal === true && !dbLinkIds.has(l.id)))
+  // Received-reciprocal links (reciprocal === true) are fully owned by the DB: always replace them
+  // with the current DB version. This handles both stale cleanup (source removed the link) and
+  // relation corrections (DB now has isBlockedBy but local still has the old wrong relation).
+  // Direct outbound links the user added (reciprocal !== true) are always kept and take precedence
+  // over any DB entry for the same card.
+  const directLocalLinks = backendReachable
+    ? localLinks.filter((l) => l.reciprocal !== true)
     : localLinks;
 
-  // Fusionne avec les liens du backend absents localement
-  const cleanedIds = new Set(cleanedLocal.map((l) => l.id));
-  const newFromDb = dbLinks.filter((l) => !cleanedIds.has(l.id));
-  const mergedLinks = [...cleanedLocal, ...newFromDb];
+  const directLocalIds = new Set(directLocalLinks.map((l) => l.id));
+  const newFromDb = dbLinks.filter((l) => !directLocalIds.has(l.id));
+  const mergedLinks = [...directLocalLinks, ...newFromDb];
 
   // Lazy-sync : écrit dans pluginData pour que les badges voient les liens réciproques.
   // Only write if something actually changed (and backend was reachable so the merge is trustworthy).
-  if (backendReachable && (newFromDb.length > 0 || cleanedLocal.length !== localLinks.length)) {
+  if (backendReachable && (newFromDb.length > 0 || directLocalLinks.length !== localLinks.length)) {
     setLinks(t, mergedLinks).catch(() => undefined);
   }
 
