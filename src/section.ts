@@ -1,9 +1,9 @@
 import { APP_AUTHOR, APP_NAME } from './config';
-import { fetchReciprocalLinks, resolveLinkedCards } from './backendClient';
+import { fetchReciprocalLinks, resolveLinkedCards, writeReciprocalLink } from './backendClient';
 import { clear, formatDate, qs } from './dom';
-import { getRelationGroup, getRelationLabel } from './linkedCards';
-import { getCurrentContext, getLinks, setLinks } from './trelloStorage';
-import type { ResolvedLinkedCard } from './types';
+import { createReciprocalLink, getRelationGroup, getRelationLabel } from './linkedCards';
+import { getCurrentCardIdentity, getCurrentContext, getLinks, setLinks } from './trelloStorage';
+import type { LinkedCard, ResolvedLinkedCard } from './types';
 import './styles.css';
 
 const t = window.TrelloPowerUp.iframe({
@@ -74,25 +74,54 @@ t.render(async () => {
 
   const { cardId } = await getCurrentContext(t);
 
-  const [localLinks, dbLinks] = await Promise.all([
+  const [localLinks, dbLinksResult] = await Promise.all([
     getLinks(t),
-    cardId ? fetchReciprocalLinks(cardId) : Promise.resolve([]),
+    cardId ? fetchReciprocalLinks(cardId) : Promise.resolve<LinkedCard[]>([]),
   ]);
 
   if (myToken !== renderToken) return;
 
-  // Supprime les liens réciproques locaux absents du backend (lien supprimé par la carte source)
+  // dbLinksResult === null means the backend was unreachable; don't mutate local state in that case.
+  const backendReachable = dbLinksResult !== null;
+  const dbLinks = dbLinksResult ?? [];
+
+  // Supprime les liens réciproques locaux absents du backend (lien supprimé par la carte source).
+  // Skip this cleanup when the backend is unreachable to avoid destroying data.
   const dbLinkIds = new Set(dbLinks.map((l) => l.id));
-  const cleanedLocal = localLinks.filter((l) => !(l.reciprocal === true && !dbLinkIds.has(l.id)));
+  const cleanedLocal = backendReachable
+    ? localLinks.filter((l) => !(l.reciprocal === true && !dbLinkIds.has(l.id)))
+    : localLinks;
 
   // Fusionne avec les liens du backend absents localement
   const cleanedIds = new Set(cleanedLocal.map((l) => l.id));
   const newFromDb = dbLinks.filter((l) => !cleanedIds.has(l.id));
   const mergedLinks = [...cleanedLocal, ...newFromDb];
 
-  // Lazy-sync : écrit dans pluginData pour que les badges voient les liens réciproques
-  if (newFromDb.length > 0 || cleanedLocal.length !== localLinks.length) {
+  // Lazy-sync : écrit dans pluginData pour que les badges voient les liens réciproques.
+  // Only write if something actually changed (and backend was reachable so the merge is trustworthy).
+  if (backendReachable && (newFromDb.length > 0 || cleanedLocal.length !== localLinks.length)) {
     setLinks(t, mergedLinks).catch(() => undefined);
+  }
+
+  // Retry failed reciprocal writes: links this card added outward that couldn't be stored in the DB.
+  const failedOutboundLinks = localLinks.filter((l) => l.reciprocal === false);
+  if (backendReachable && failedOutboundLinks.length > 0) {
+    const currentCard = await getCurrentCardIdentity(t);
+    if (myToken !== renderToken) return;
+    const retryResults = await Promise.all(
+      failedOutboundLinks.map(async (link) => {
+        const reciprocal = createReciprocalLink(link, currentCard);
+        const ok = await writeReciprocalLink(link.id, reciprocal);
+        return ok ? link.id : null;
+      }),
+    );
+    const retriedIds = new Set(retryResults.filter((id): id is string => id !== null));
+    if (retriedIds.size > 0) {
+      const updatedLinks = localLinks.map((l) =>
+        retriedIds.has(l.id) ? ({ ...l, reciprocal: undefined } as LinkedCard) : l,
+      );
+      setLinks(t, updatedLinks).catch(() => undefined);
+    }
   }
 
   if (mergedLinks.length === 0) {

@@ -76,11 +76,11 @@ export async function removeReciprocalLink(targetCardId: string, sourceCardId: s
   });
 }
 
-export async function fetchReciprocalLinks(cardId: string): Promise<LinkedCard[]> {
+export async function fetchReciprocalLinks(cardId: string): Promise<LinkedCard[] | null> {
   try {
     const res = await backendFetch<{ links: LinkedCard[] }>(`/api/links/card/${encodeURIComponent(cardId)}`);
     return res.links ?? [];
   } catch {
-    return [];
+    return null;
   }
 }

@@ -127,7 +127,10 @@ async function addLink(): Promise<void> {
 
   const reciprocal = createReciprocalLink(link, currentCard);
   const reciprocalWritten = await tryWriteReciprocal(targetCard.id, reciprocal);
-  await setLinks(t, addOrReplaceLink(currentLinks, { ...link, reciprocal: reciprocalWritten }));
+  // Don't mark the link as reciprocal:true — that flag is reserved for links received FROM other cards
+  // via lazy-sync in section.ts. Only flag failed writes (reciprocal:false) for later retry.
+  const storedLink: LinkedCard = reciprocalWritten ? link : { ...link, reciprocal: false };
+  await setLinks(t, addOrReplaceLink(currentLinks, storedLink));
 
   input.value = '';
   message.textContent = reciprocalWritten
