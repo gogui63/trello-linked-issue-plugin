@@ -47,21 +47,14 @@ window.TrelloPowerUp.initialize(
     }),
     'card-badges': async (t: any) => {
       const links = await getLinks(t).catch(() => []);
-      if (links.length === 0) return [];
+      const summary = summarizeBadges(links);
+      if (summary.total === 0) return [];
 
       return [
         {
-          dynamic: async () => {
-            const freshLinks = await getLinks(t).catch(() => links);
-            const summary = summarizeBadges(freshLinks);
-            if (summary.total === 0) return {};
-            return {
-              text: summary.blockers > 0 ? `${summary.blockers} bloque` : `${summary.total} lien${summary.total > 1 ? 's' : ''}`,
-              icon: ICON_URL,
-              color: summary.blockers > 0 ? 'red' : 'blue',
-              refresh: 30,
-            };
-          },
+          text: summary.blockers > 0 ? `${summary.blockers} bloque` : `${summary.total} lien${summary.total > 1 ? 's' : ''}`,
+          icon: ICON_URL,
+          color: summary.blockers > 0 ? 'red' : 'blue',
         },
       ];
     },
