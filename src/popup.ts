@@ -2,6 +2,7 @@ import { APP_AUTHOR, APP_NAME } from './config';
 import {
   findCardByShortLink,
   removeReciprocalLink,
+  resolveLinkedCards,
   searchCards,
   writeReciprocalLink,
 } from './backendClient';
@@ -52,12 +53,22 @@ async function renderExistingLinks(): Promise<void> {
     return;
   }
 
+  const resolved = await resolveLinkedCards(links).catch(() => []);
+  const namesById = new Map<string, string>();
+  resolved.forEach((item) => {
+    if (item.card?.name) namesById.set(item.link.id, item.card.name);
+  });
+
   links.forEach((link) => {
     const row = document.createElement('div');
     row.className = 'existing-row';
 
     const text = document.createElement('div');
-    text.innerHTML = `<strong>${getRelationLabel(link.relation)}</strong><br><span>${link.shortLink}</span>`;
+    const title = document.createElement('strong');
+    title.textContent = getRelationLabel(link.relation);
+    const cardName = document.createElement('span');
+    cardName.textContent = namesById.get(link.id) ?? link.shortLink;
+    text.append(title, document.createElement('br'), cardName);
 
     const remove = document.createElement('button');
     remove.type = 'button';

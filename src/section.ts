@@ -177,7 +177,12 @@ t.render(async () => {
       wrapper.append(bar, text);
       group.appendChild(wrapper);
     }
-    items.forEach((item) => group.appendChild(createCardRow(item)));
+    const isDone = (item: ResolvedLinkedCard) =>
+      item.link.relation === 'parentOf' && isDoneCard(item, DONE_COLUMNS_NAMES);
+    // Tri stable : les cartes terminées passent en fin de groupe.
+    [...items]
+      .sort((a, b) => Number(isDone(a)) - Number(isDone(b)))
+      .forEach((item) => group.appendChild(createCardRow(item)));
     groups.appendChild(group);
   }
 
