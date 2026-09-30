@@ -4,25 +4,26 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="https://p.trellocdn.com/power-up.css" />
-    <title>Gerer les Linked Cards</title>
-    <script type="module" crossorigin src="/trello-plugin-linked-cards/assets/popup-B5zGdANm.js"></script>
-    <link rel="modulepreload" crossorigin href="/trello-plugin-linked-cards/assets/styles-BcM1YQbB.js">
-    <link rel="modulepreload" crossorigin href="/trello-plugin-linked-cards/assets/backendClient-CMhDQ5Co.js">
-    <link rel="modulepreload" crossorigin href="/trello-plugin-linked-cards/assets/dom-CANVbKc5.js">
-    <link rel="modulepreload" crossorigin href="/trello-plugin-linked-cards/assets/trelloStorage-Cg61DtlZ.js">
-    <link rel="stylesheet" crossorigin href="/trello-plugin-linked-cards/assets/styles-C6afSwn2.css">
+    <title>Gérer les Linked Cards</title>
+    <script src="https://p.trellocdn.com/power-up.min.js"></script>
+    <script type="module" crossorigin src="./assets/popup-D4s8Vx8C.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/styles-DjSYdV_u.js">
+    <link rel="modulepreload" crossorigin href="./assets/trelloStorage-CPtdKuyd.js">
+    <link rel="modulepreload" crossorigin href="./assets/dom-CANVbKc5.js">
+    <link rel="stylesheet" crossorigin href="./assets/styles-DA7GWKaP.css">
   </head>
   <body>
     <main id="popup-content" class="surface popup-layout">
       <section>
         <h2>Ajouter un lien</h2>
         <label for="card-url">URL ou identifiant de carte Trello</label>
-        <input id="card-url" type="text" placeholder="https://trello.com/c/abc123/titre ou abc123" />
+        <input id="card-url" type="text" placeholder="https://trello.com/c/abc123/titre ou abc123" autocomplete="off" />
+        <div id="card-suggestions" class="suggestions" hidden></div>
 
         <label for="relation">Relation</label>
         <select id="relation"></select>
 
-        <button id="add-link" type="button" class="primary">Ajouter la carte liee</button>
+        <button id="add-link" type="button" class="primary">Ajouter la carte liée</button>
         <p id="form-message" class="form-message" role="status"></p>
       </section>
 
@@ -31,6 +32,5 @@
         <div id="existing-links" class="existing-links"></div>
       </section>
     </main>
-    <script src="https://p.trellocdn.com/power-up.min.js"></script>
   </body>
 </html>

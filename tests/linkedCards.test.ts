@@ -1,15 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import {
   addOrReplaceLink,
+  computeProgress,
   createReciprocalLink,
   getInverseRelation,
+  isDoneCard,
   normalizeLinks,
   parseCardIdentifier,
   pluginDataSize,
   removeLink,
   summarizeBadges,
 } from '../src/linkedCards';
-import type { LinkedCard } from '../src/types';
+import type { LinkedCard, ResolvedLinkedCard } from '../src/types';
 
 const baseLink: LinkedCard = {
   id: 'card-1',
@@ -83,5 +85,36 @@ describe('pluginData link collection', () => {
 
   it('computes compact storage size', () => {
     expect(pluginDataSize([baseLink])).toBeGreaterThan(50);
+  });
+});
+
+describe('progress', () => {
+  const child = (relation: LinkedCard['relation'], listName?: string, error?: ResolvedLinkedCard['error']): ResolvedLinkedCard => ({
+    link: { ...baseLink, relation },
+    listName,
+    error,
+  });
+
+  it('detects done lists case-insensitively', () => {
+    expect(isDoneCard(child('parentOf', ' done '), ['DONE'])).toBe(true);
+    expect(isDoneCard(child('parentOf', 'Terminé'), ['DONE', 'terminé'])).toBe(true);
+    expect(isDoneCard(child('parentOf', 'Doing'), ['DONE'])).toBe(false);
+    expect(isDoneCard(child('parentOf'), ['DONE'])).toBe(false);
+    expect(isDoneCard(child('parentOf', 'DONE', 'not-found'), ['DONE'])).toBe(false);
+  });
+
+  it('returns null without children', () => {
+    expect(computeProgress([child('blocks', 'DONE')], ['DONE'])).toBeNull();
+  });
+
+  it('computes percent over parentOf children only', () => {
+    const items = [
+      child('parentOf', 'DONE'),
+      child('parentOf', 'Doing'),
+      child('parentOf', 'Todo'),
+      child('blocks', 'DONE'),
+      child('parentOf', undefined, 'not-found'),
+    ];
+    expect(computeProgress(items, ['DONE'])).toEqual({ done: 1, total: 3, percent: 33 });
   });
 });

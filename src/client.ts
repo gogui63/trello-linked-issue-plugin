@@ -1,5 +1,6 @@
-import { APP_AUTHOR, APP_NAME, ICON_URL } from './config';
-import { getRelationLabel, summarizeBadges } from './linkedCards';
+import { APP_AUTHOR, APP_NAME, DONE_COLUMNS_NAMES, ICON_URL } from './config';
+import { resolveLinkedCards } from './backendClient';
+import { computeProgress, getRelationLabel, summarizeBadges } from './linkedCards';
 import { getLinks } from './trelloStorage';
 import './styles.css';
 
@@ -71,7 +72,7 @@ window.TrelloPowerUp.initialize(
               .map((link) => getRelationLabel(link.relation))
               .join(', ');
 
-      return [
+      const badges: Array<Record<string, unknown>> = [
         {
           title: 'Linked Cards',
           text: `${summary.total} lien${summary.total > 1 ? 's' : ''} - ${blockingText}`,
@@ -79,6 +80,24 @@ window.TrelloPowerUp.initialize(
           callback: (context: any) => openManager(context),
         },
       ];
+
+      const childLinks = links.filter((link) => link.relation === 'parentOf');
+      if (childLinks.length > 0) {
+        try {
+          const progress = computeProgress(await resolveLinkedCards(childLinks), DONE_COLUMNS_NAMES);
+          if (progress) {
+            badges.push({
+              title: 'Avancement',
+              text: `${progress.percent} % (${progress.done}/${progress.total})`,
+              color: progress.percent === 100 ? 'green' : 'blue',
+            });
+          }
+        } catch {
+          // Backend indisponible : on n'affiche simplement pas l'avancement.
+        }
+      }
+
+      return badges;
     },
   },
   {

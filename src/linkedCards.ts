@@ -1,4 +1,4 @@
-import type { BadgeSummary, LinkedCard, RelationKey } from './types';
+import type { BadgeSummary, LinkedCard, RelationKey, ResolvedLinkedCard } from './types';
 
 export const RELATIONS: Array<{
   key: RelationKey;
@@ -108,4 +108,24 @@ export function summarizeBadges(links: LinkedCard[]): BadgeSummary {
 
 export function pluginDataSize(links: LinkedCard[]): number {
   return JSON.stringify(links).length;
+}
+
+export function isDoneCard(item: ResolvedLinkedCard, doneNames: string[]): boolean {
+  if (item.error || !item.listName) {
+    return false;
+  }
+  const listName = item.listName.trim().toLowerCase();
+  return doneNames.some((name) => name.trim().toLowerCase() === listName);
+}
+
+export function computeProgress(
+  items: ResolvedLinkedCard[],
+  doneNames: string[],
+): { done: number; total: number; percent: number } | null {
+  const children = items.filter((item) => item.link.relation === 'parentOf' && !item.error);
+  if (children.length === 0) {
+    return null;
+  }
+  const done = children.filter((item) => isDoneCard(item, doneNames)).length;
+  return { done, total: children.length, percent: Math.round((done / children.length) * 100) };
 }

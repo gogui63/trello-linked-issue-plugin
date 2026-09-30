@@ -1,7 +1,7 @@
-import { APP_AUTHOR, APP_NAME } from './config';
+import { APP_AUTHOR, APP_NAME, DONE_COLUMNS_NAMES } from './config';
 import { fetchReciprocalLinks, resolveLinkedCards, writeReciprocalLink } from './backendClient';
 import { clear, formatDate, qs } from './dom';
-import { createReciprocalLink, getRelationGroup, getRelationLabel } from './linkedCards';
+import { computeProgress, createReciprocalLink, getRelationGroup, getRelationLabel, isDoneCard } from './linkedCards';
 import { getCurrentCardIdentity, getCurrentContext, getLinks, setLinks } from './trelloStorage';
 import type { LinkedCard, ResolvedLinkedCard } from './types';
 import './styles.css';
@@ -26,6 +26,9 @@ function statusText(item: ResolvedLinkedCard): string {
 function createCardRow(item: ResolvedLinkedCard): HTMLElement {
   const row = document.createElement('article');
   row.className = `linked-row ${item.error ? 'is-error' : ''}`;
+  if (item.link.relation === 'parentOf' && isDoneCard(item, DONE_COLUMNS_NAMES)) {
+    row.classList.add('is-done');
+  }
 
   const relation = document.createElement('span');
   relation.className = 'relation-chip';
@@ -158,6 +161,22 @@ t.render(async () => {
     const heading = document.createElement('h3');
     heading.textContent = groupName;
     group.appendChild(heading);
+    const progress = computeProgress(items, DONE_COLUMNS_NAMES);
+    if (progress) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'progress';
+      const bar = document.createElement('div');
+      bar.className = 'progress-bar';
+      const fill = document.createElement('div');
+      fill.className = 'progress-fill';
+      fill.style.width = `${progress.percent}%`;
+      bar.appendChild(fill);
+      const text = document.createElement('span');
+      text.className = 'progress-text';
+      text.textContent = `${progress.done}/${progress.total} - ${progress.percent} %`;
+      wrapper.append(bar, text);
+      group.appendChild(wrapper);
+    }
     items.forEach((item) => group.appendChild(createCardRow(item)));
     groups.appendChild(group);
   }

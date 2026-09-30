@@ -151,6 +151,37 @@ button.subtle {
   color: #ae2a19;
 }
 
+.linked-row.is-done .linked-title {
+  opacity: 0.6;
+  text-decoration: line-through;
+}
+
+.progress {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  margin: 4px 0 6px;
+}
+
+.progress-bar {
+  background: #dcdfe4;
+  border-radius: 999px;
+  flex: 1;
+  height: 8px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  background: #4bce97;
+  height: 100%;
+}
+
+.progress-text {
+  color: #626f86;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .relation-chip {
   background: rgba(12, 102, 228, 0.1);
   border-radius: 3px;
@@ -260,6 +291,14 @@ button.subtle {
   .linked-row,
   .existing-row {
     border-bottom-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .progress-bar {
+    background: #454f59;
+  }
+
+  .progress-text {
+    color: #9fadbc;
   }
 
   .relation-chip {
