@@ -107,22 +107,23 @@ t.render(async () => {
     setLinks(t, mergedLinks).catch(() => undefined);
   }
 
-  // Retry failed reciprocal writes: links this card added outward that couldn't be stored in the DB.
-  const failedOutboundLinks = localLinks.filter((l) => l.reciprocal === false);
-  if (backendReachable && failedOutboundLinks.length > 0) {
+  // Self-heal: re-push every direct outbound link to the DB (idempotent upsert). This retries failed
+  // writes (reciprocal === false) and restores rows lost on the backend (DB reset, pre-migration links).
+  if (backendReachable && directLocalLinks.length > 0) {
     const currentCard = await getCurrentCardIdentity(t);
     if (myToken !== renderToken) return;
-    const retryResults = await Promise.all(
-      failedOutboundLinks.map(async (link) => {
+    const pushResults = await Promise.all(
+      directLocalLinks.map(async (link) => {
         const reciprocal = createReciprocalLink(link, currentCard);
         const ok = await writeReciprocalLink(link.id, reciprocal);
         return ok ? link.id : null;
       }),
     );
-    const retriedIds = new Set(retryResults.filter((id): id is string => id !== null));
-    if (retriedIds.size > 0) {
+    const pushedIds = new Set(pushResults.filter((id): id is string => id !== null));
+    const needsFlagClear = localLinks.some((l) => l.reciprocal === false && pushedIds.has(l.id));
+    if (needsFlagClear) {
       const updatedLinks = localLinks.map((l) =>
-        retriedIds.has(l.id) ? ({ ...l, reciprocal: undefined } as LinkedCard) : l,
+        l.reciprocal === false && pushedIds.has(l.id) ? ({ ...l, reciprocal: undefined } as LinkedCard) : l,
       );
       setLinks(t, updatedLinks).catch(() => undefined);
     }
